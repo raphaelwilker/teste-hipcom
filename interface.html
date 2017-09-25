@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Interface TR-345 v.7.1</title>
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<style type="text/css">
+
+
+	.row>div{
+		border: 1px solid;
+	}
+
+	.contentCell{
+		padding: 7px;
+		text-align: center;
+	}
+
+</style>
+</head>
+<body>
+	<div class="container">
+		<div id= "table">
+		</div>	
+	</div>
+
+	<button class="btn btn-primary" id="btnInsert"> Inserir Linha </button>
+<script type="text/javascript">
+function scanPlanets() {
+    var scanResults = '[{' +
+		'"id": 1,' +
+		'"nome": "LV-426",' +
+		'"o2": 0.01,' +
+		'"gravidade": 1.1,' +
+		'"distancia": 13.42687' +
+	'}, {' +
+	'	"id": 2,' +
+	'	"nome": "Betelgeuse V",' +
+	'	"o2": 0.27,' +
+	'	"gravidade": 1.21,' +
+	'	"distancia": 34.42' +
+	'}, {' +
+	'	"id": 3,' +
+	'	"nome": "Titania",' +
+	'	"o2": 0.23,' +
+	'	"gravidade": 0.48,' +
+	'	"distancia": 24.7' +
+	'}]';
+	return scanResults;
+}
+
+$(document).ready(function(){
+	var json = JSON.parse(scanPlanets());
+
+	function round(value, decimals) {
+	  return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+	}
+	
+	for(var i in json){
+		var o2 = json[i].o2 * 100;
+		var gravidade = round(json[i].gravidade,2);
+		var distancia = round(json[i].distancia, 4);
+
+		$('#table').append('<div class="row"><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" id="id-'+json[i].id+'"><div class="contentCell">'+json[i].id+'</div></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" contenteditable="true" id="nome-'+json[i].id+'"><div class="contentCell">'+json[i].nome+'</div></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 dgO2" contenteditable="true" id="o2-'+o2+'"><div class="contentCell">'+o2+'%</div></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 dgO2G2" contenteditable="true" id="gs-'+json[i].id+'"><div class="contentCell">'+gravidade+'Gs</div></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 dgLY" contenteditable="true" id="ly-'+json[i].id+'"><div class="contentCell">'+distancia+'LY</div></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2"><button class="btn btn-primary load" data-row="'+json[i].id+'"> Carregar </button></div></div>');
+		
+	}
+
+	$('#btnInsert').click(function(){
+
+		var id = $('.row').length + 1;
+		$('#table').append('<div class="row"><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2"  id="id-'+id+'"><div class="contentCell">'+id+'</div></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" contenteditable="true" id="nome-'+id+'"><div class="contentCell">nome</div></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 dgO2" contenteditable="true" id="o2-'+id+'"><div class="contentCell">0%</div></div><div class="col-lg-2  col-md-2 col-sm-2 col-xs-2 dgO2G2" contenteditable="true" id="gs-'+id+'"><div class="contentCell">0Gs</div></div><div class="col-lg-2 dgLY" contenteditable="true" id="ly-'+id+'"><div class="contentCell">0LY</div></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2"><button class="btn btn-primary load" data-row="'+id+'"> Carregar </button></div></div>');
+		setFunctions();
+	});
+
+
+	function setFunctions(){
+
+		$('.dgO2').keyup(function(){
+			var text = $(this).text();
+			if(!text.match(/%/g)){
+				 $(this).append('%');
+			}
+		});
+
+		$('.dgO2G2').keyup(function(){
+			var text = $(this).text();
+			if(!text.match(/Gs/g)){
+				 $(this).append('Gs');
+			}
+		});
+
+		$('.dgLY').keyup(function(){
+			var text = $(this).text();
+			if(!text.match(/LY/g)){
+				 $(this).append('LY');
+			}
+		});
+
+		$('div[contenteditable]').blur(function(){
+
+			var num = '0';
+			num = $(this).text();
+			if($(this).hasClass('dgLY')){
+				num = num.replace(/LY/g,'');
+				num = round(num,4);
+				$(this).html('<div class="contentCell">'+num+'LY</div>');
+
+			}else if($(this).hasClass('dgO2G2')){
+				num = num.replace(/([Gs])/g,'');
+				num = round(num,2);
+				$(this).html('<div class="contentCell">'+num+'Gs</div>');
+
+			}else if($(this).hasClass('dgO2')){
+				
+				num = num.replace(/%/g,'');
+				num = num[0]+num[1];
+				num = parseInt(num);
+				$(this).html('<div class="contentCell">'+num+'%</div>');
+			}
+
+		});
+
+		$('.load').click(function(){
+			var valueData = $(this).attr('data-row');
+			var rowJson = {
+				"id": $('#id-'+valueData).text(),
+				"nome":$('#nome-'+valueData).text(),
+				"o2":$('#o2-'+valueData).text(),
+				"gravidade":$('#gs-'+valueData).text(),
+				"distancia":$('#ly-'+valueData).text()
+
+			}
+			rowJson = JSON.stringify(rowJson);
+			console.log(rowJson)
+			window.open("data:text/json;charset=utf8," + encodeURIComponent(rowJson),'_blank');
+			window.focus();
+			alert(rowJson);
+		});
+
+		
+
+	}
+
+	setFunctions();
+	
+});
+</script>
+</body>
+
+</html> 
